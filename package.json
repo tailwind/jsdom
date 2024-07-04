@@ -1,7 +1,8 @@
 {
-  "name": "jsdom",
-  "version": "24.1.0",
+  "name": "@tailwind/jsdom",
+  "version": "0.0.5",
   "description": "A JavaScript implementation of many web standards",
+  "types": "./index.d.ts",
   "keywords": [
     "dom",
     "html",

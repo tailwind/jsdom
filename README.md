@@ -3,6 +3,13 @@
     jsdom
 </h1>
 
+## Tailwind Fork Changes
+
+This fork includes two simple changes:
+
+1. Export an `index.d.ts` file, with nothing in it. This allows the library to be used with TypeScript projects without them complaining about a lack of a types file. To get the real types, install `@types/jsdom`.
+2. Set the `xhr-sync-worker.js` file import to `null` in `lib/jsdom/living/xhr/XMLHttpRequest-impl.js`. This is necessary for bundling this code with `esbuild` for use in our AWS Lambda functions. Normally, a custom `esbuild` plugin could take care of this, but since AWS CDK executes `esbuild` via the command line, we cannot use plugins.
+
 jsdom is a pure-JavaScript implementation of many web standards, notably the WHATWG [DOM](https://dom.spec.whatwg.org/) and [HTML](https://html.spec.whatwg.org/multipage/) Standards, for use with Node.js. In general, the goal of the project is to emulate enough of a subset of a web browser to be useful for testing and scraping real-world web applications.
 
 The latest versions of jsdom require Node.js v18 or newer. (Versions of jsdom below v23 still work with previous Node.js versions, but are unsupported.)
@@ -28,7 +35,7 @@ The resulting object is an instance of the `JSDOM` class, which contains a numbe
 ```js
 const { window } = new JSDOM(`...`);
 // or even
-const { document } = (new JSDOM(`...`)).window;
+const { document } = new JSDOM(`...`).window;
 ```
 
 Full documentation on everything you can do with the `JSDOM` class is below, in the section "`JSDOM` Object API".
@@ -45,7 +52,7 @@ const dom = new JSDOM(``, {
   referrer: "https://example.com/",
   contentType: "text/html",
   includeNodeLocations: true,
-  storageQuota: 10000000
+  storageQuota: 10000000,
 });
 ```
 
@@ -76,10 +83,13 @@ console.log(dom.window.document.getElementById("content").children.length); // 0
 To enable executing scripts inside the page, you can use the `runScripts: "dangerously"` option:
 
 ```js
-const dom = new JSDOM(`<body>
+const dom = new JSDOM(
+  `<body>
   <div id="content"></div>
   <script>document.getElementById("content").append(document.createElement("hr"));</script>
-</body>`, { runScripts: "dangerously" });
+</body>`,
+  { runScripts: "dangerously" }
+);
 
 // The script will be executed and modify the DOM:
 console.log(dom.window.document.getElementById("content").children.length); // 1
@@ -94,13 +104,18 @@ Event handler attributes, like `<div onclick="">`, are also governed by this set
 If you are simply trying to execute script "from the outside", instead of letting `<script>` elements and event handlers attributes run "from the inside", you can use the `runScripts: "outside-only"` option, which enables fresh copies of all the JavaScript spec-provided globals to be installed on `window`. This includes things like `window.Array`, `window.Promise`, etc. It also, notably, includes `window.eval`, which allows running scripts, but with the jsdom `window` as the global:
 
 ```js
-const dom = new JSDOM(`<body>
+const dom = new JSDOM(
+  `<body>
   <div id="content"></div>
   <script>document.getElementById("content").append(document.createElement("hr"));</script>
-</body>`, { runScripts: "outside-only" });
+</body>`,
+  { runScripts: "outside-only" }
+);
 
 // run a script outside of JSDOM:
-dom.window.eval('document.getElementById("content").append(document.createElement("p"));');
+dom.window.eval(
+  'document.getElementById("content").append(document.createElement("p"));'
+);
 
 console.log(dom.window.document.getElementById("content").children.length); // 1
 console.log(dom.window.document.getElementsByTagName("hr").length); // 0
@@ -121,14 +136,14 @@ jsdom does not have the capability to render visual content, and will act like a
 
 When the `pretendToBeVisual` option is set to `true`, jsdom will pretend that it is rendering and displaying content. It does this by:
 
-* Changing `document.hidden` to return `false` instead of `true`
-* Changing `document.visibilityState` to return `"visible"` instead of `"prerender"`
-* Enabling `window.requestAnimationFrame()` and `window.cancelAnimationFrame()` methods, which otherwise do not exist
+- Changing `document.hidden` to return `false` instead of `true`
+- Changing `document.visibilityState` to return `"visible"` instead of `"prerender"`
+- Enabling `window.requestAnimationFrame()` and `window.cancelAnimationFrame()` methods, which otherwise do not exist
 
 ```js
-const window = (new JSDOM(``, { pretendToBeVisual: true })).window;
+const window = new JSDOM(``, { pretendToBeVisual: true }).window;
 
-window.requestAnimationFrame(timestamp => {
+window.requestAnimationFrame((timestamp) => {
   console.log(timestamp > 0);
 });
 ```
@@ -141,10 +156,10 @@ Note that jsdom still [does not do any layout or rendering](#unimplemented-parts
 
 By default, jsdom will not load any subresources such as scripts, stylesheets, images, or iframes. If you'd like jsdom to load such resources, you can pass the `resources: "usable"` option, which will load all usable resources. Those are:
 
-* Frames and iframes, via `<frame>` and `<iframe>`
-* Stylesheets, via `<link rel="stylesheet">`
-* Scripts, via `<script>`, but only if `runScripts: "dangerously"` is also set
-* Images, via `<img>`, but only if the `canvas` npm package is also installed (see "[Canvas Support](#canvas-support)" below)
+- Frames and iframes, via `<frame>` and `<iframe>`
+- Stylesheets, via `<link rel="stylesheet">`
+- Scripts, via `<script>`, but only if `runScripts: "dangerously"` is also set
+- Images, via `<img>`, but only if the `canvas` npm package is also installed (see "[Canvas Support](#canvas-support)" below)
 
 When attempting to load resources, recall that the default value for the `url` option is `"about:blank"`, which means that any resources included via relative URLs will fail to load. (The result of trying to parse the URL `/something` against the URL `about:blank` is an error.) So, you'll likely want to set a non-default value for the `url` option in those cases, or use one of the [convenience APIs](#convenience-apis) that do so automatically.
 
@@ -190,7 +205,9 @@ One of the options you will receive in `fetch()` will be the element (if applica
 class CustomResourceLoader extends jsdom.ResourceLoader {
   fetch(url, options) {
     if (options.element) {
-      console.log(`Element ${options.element.localName} is requesting the url ${url}`);
+      console.log(
+        `Element ${options.element.localName} is requesting the url ${url}`
+      );
     }
 
     return super.fetch(url, options);
@@ -219,7 +236,7 @@ virtualConsole.on("dir", () => { ... });
 // ... etc. See https://console.spec.whatwg.org/#logging
 ```
 
-(Note that it is probably best to set up these event listeners *before* calling `new JSDOM()`, since errors or console-invoking script might occur during parsing.)
+(Note that it is probably best to set up these event listeners _before_ calling `new JSDOM()`, since errors or console-invoking script might occur during parsing.)
 
 If you simply want to redirect the virtual console output to another console, like the default Node.js one, you can do
 
@@ -262,8 +279,10 @@ jsdom allows you to intervene in the creation of a jsdom very early: after the `
 const dom = new JSDOM(`<p>Hello</p>`, {
   beforeParse(window) {
     window.document.childNodes.length === 0;
-    window.someCoolAPI = () => { /* ... */ };
-  }
+    window.someCoolAPI = () => {
+      /* ... */
+    };
+  },
 });
 ```
 
@@ -286,10 +305,12 @@ The `serialize()` method will return the [HTML serialization](https://html.spec.
 ```js
 const dom = new JSDOM(`<!DOCTYPE html>hello`);
 
-dom.serialize() === "<!DOCTYPE html><html><head></head><body>hello</body></html>";
+dom.serialize() ===
+  "<!DOCTYPE html><html><head></head><body>hello</body></html>";
 
 // Contrast with:
-dom.window.document.documentElement.outerHTML === "<html><head></head><body>hello</body></html>";
+dom.window.document.documentElement.outerHTML ===
+  "<html><head></head><body>hello</body></html>";
 ```
 
 ### Getting the source location of a node with `nodeLocation(node)`
@@ -310,10 +331,10 @@ const pEl = document.querySelector("p");
 const textNode = pEl.firstChild;
 const imgEl = document.querySelector("img");
 
-console.log(dom.nodeLocation(bodyEl));   // null; it's not in the source
-console.log(dom.nodeLocation(pEl));      // { startOffset: 0, endOffset: 39, startTag: ..., endTag: ... }
+console.log(dom.nodeLocation(bodyEl)); // null; it's not in the source
+console.log(dom.nodeLocation(pEl)); // { startOffset: 0, endOffset: 39, startTag: ..., endTag: ... }
 console.log(dom.nodeLocation(textNode)); // { startOffset: 3, endOffset: 13 }
-console.log(dom.nodeLocation(imgEl));    // { startOffset: 13, endOffset: 32 }
+console.log(dom.nodeLocation(imgEl)); // { startOffset: 13, endOffset: 32 }
 ```
 
 Note that this feature only works if you have set the `includeNodeLocations` option; node locations are off by default for performance reasons.
@@ -363,7 +384,10 @@ const dom = new JSDOM();
 dom.window.top === dom.window;
 dom.window.location.href === "about:blank";
 
-dom.reconfigure({ windowTop: myFakeTopForTesting, url: "https://example.com/" });
+dom.reconfigure({
+  windowTop: myFakeTopForTesting,
+  url: "https://example.com/",
+});
 
 dom.window.top === myFakeTopForTesting;
 dom.window.location.href === "https://example.com/";
@@ -378,7 +402,7 @@ Note that changing the jsdom's URL will impact all APIs that return the current 
 In addition to the `JSDOM` constructor itself, jsdom provides a promise-returning factory method for constructing a jsdom from a URL:
 
 ```js
-JSDOM.fromURL("https://example.com/", options).then(dom => {
+JSDOM.fromURL("https://example.com/", options).then((dom) => {
   console.log(dom.serialize());
 });
 ```
@@ -398,7 +422,7 @@ The options provided to `fromURL()` are similar to those provided to the `JSDOM`
 Similar to `fromURL()`, jsdom also provides a `fromFile()` factory method for constructing a jsdom from a filename:
 
 ```js
-JSDOM.fromFile("stuff.html", options).then(dom => {
+JSDOM.fromFile("stuff.html", options).then((dom) => {
   console.log(dom.serialize());
 });
 ```
@@ -480,9 +504,9 @@ window.onModulesLoaded = () => {
 ```html
 <!-- Inside the HTML you supply to jsdom -->
 <script>
-requirejs(["entry-module"], () => {
-  window.onModulesLoaded();
-});
+  requirejs(["entry-module"], () => {
+    window.onModulesLoaded();
+  });
 </script>
 ```
 
