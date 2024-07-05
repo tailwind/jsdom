@@ -1,6 +1,6 @@
 {
   "name": "@tailwind/jsdom",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A JavaScript implementation of many web standards",
   "types": "./index.d.ts",
   "keywords": [
@@ -9,17 +9,8 @@
     "whatwg",
     "w3c"
   ],
-  "maintainers": [
-    "Elijah Insua <tmpvar@gmail.com> (http://tmpvar.com)",
-    "Domenic Denicola <d@domenic.me> (https://domenic.me/)",
-    "Sebastian Mayr <sebmaster16@gmail.com> (https://blog.smayr.name/)",
-    "Joris van der Wel <joris@jorisvanderwel.com>",
-    "Timothy Gu <timothygu99@gmail.com> (https://timothygu.me/)",
-    "Magne Andersson <code@zirro.se> (https://zirro.se/)",
-    "Pierre-Marie Dartus <dartus.pierremarie@gmail.com>"
-  ],
   "license": "MIT",
-  "repository": "jsdom/jsdom",
+  "repository": "@tailwind/jsdom",
   "dependencies": {
     "@types/jsdom": "^21.1.7",
     "cssstyle": "^4.0.1",
