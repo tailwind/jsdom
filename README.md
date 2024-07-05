@@ -7,7 +7,7 @@
 
 This fork includes two simple changes:
 
-1. Export an `index.d.ts` file, with nothing in it. This allows the library to be used with TypeScript projects without them complaining about a lack of a types file. To get the real types, install `@types/jsdom`.
+1. Export `index.d.ts` and `base.d.ts` files with type information copied from `@types/jsdom`. This allows the library to be used with TypeScript projects without them complaining about a lack of a types file.ß
 2. Set the `xhr-sync-worker.js` file import to `null` in `lib/jsdom/living/xhr/XMLHttpRequest-impl.js`. This is necessary for bundling this code with `esbuild` for use in our AWS Lambda functions. Normally, a custom `esbuild` plugin could take care of this, but since AWS CDK executes `esbuild` via the command line, we cannot use plugins.
 
 jsdom is a pure-JavaScript implementation of many web standards, notably the WHATWG [DOM](https://dom.spec.whatwg.org/) and [HTML](https://html.spec.whatwg.org/multipage/) Standards, for use with Node.js. In general, the goal of the project is to emulate enough of a subset of a web browser to be useful for testing and scraping real-world web applications.
