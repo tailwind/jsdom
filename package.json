@@ -1,6 +1,6 @@
 {
   "name": "@tailwind/jsdom",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A JavaScript implementation of many web standards",
   "types": "./index.d.ts",
   "keywords": [
@@ -10,7 +10,13 @@
     "w3c"
   ],
   "license": "MIT",
-  "repository": "@tailwind/jsdom",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:tailwind/jsdom.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "dependencies": {
     "@types/jsdom": "^21.1.7",
     "cssstyle": "^4.0.1",
