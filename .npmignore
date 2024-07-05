@@ -2,3 +2,4 @@
 !lib/
 lib/**/*.webidl
 !index.d.ts
+!base.d.ts
